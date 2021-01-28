@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>5.0</version>
-    <date>2020-08-12T12:15:43Z</date>
+    <date>2021-01-28T11:13:52Z</date>
     <groups>
         <group>
             <name>Networking Hardware SNMPv3</name>
@@ -9,13 +9,8 @@
     </groups>
     <templates>
         <template>
-            <template>Template SNMPv3 Fortigate</template>
-            <name>Template SNMPv3 Fortigate</name>
-            <templates>
-                <template>
-                    <name>Template Module ICMP Ping</name>
-                </template>
-            </templates>
+            <template>TemplateSNMPv3Fortigate</template>
+            <name>Template SNMPv3 Fortigate 100</name>
             <groups>
                 <group>
                     <name>Networking Hardware SNMPv3</name>
@@ -27,9 +22,6 @@
                 </application>
                 <application>
                     <name>General</name>
-                </application>
-                <application>
-                    <name>Hardware</name>
                 </application>
                 <application>
                     <name>High Availability</name>
@@ -118,30 +110,6 @@
                     <applications>
                         <application>
                             <name>Inventory</name>
-                        </application>
-                    </applications>
-                </item>
-                <item>
-                    <name>VPN SSL Current Users</name>
-                    <type>SNMP_AGENT</type>
-                    <snmp_oid>.1.3.6.1.4.1.12356.101.12.2.3.1.2.1</snmp_oid>
-                    <key>fortigateVpnSslLoginUsers</key>
-                    <delay>3m</delay>
-                    <applications>
-                        <application>
-                            <name>VPN</name>
-                        </application>
-                    </applications>
-                </item>
-                <item>
-                    <name>VPN SSL Status</name>
-                    <type>SNMP_AGENT</type>
-                    <snmp_oid>.1.3.6.1.4.1.12356.101.12.2.3.1.1.1</snmp_oid>
-                    <key>fortigateVpnSslState</key>
-                    <delay>3m</delay>
-                    <applications>
-                        <application>
-                            <name>VPN</name>
                         </application>
                     </applications>
                 </item>
@@ -292,6 +260,40 @@
                     </applications>
                 </item>
                 <item>
+                    <name>ICMP Ping Secondary PE</name>
+                    <type>SIMPLE</type>
+                    <key>icmpping[{$PE_IP2}]</key>
+                    <applications>
+                        <application>
+                            <name>Availability</name>
+                        </application>
+                    </applications>
+                    <triggers>
+                        <trigger>
+                            <expression>{max(#3)}=0</expression>
+                            <name>Unavailable Secondary PE Ping</name>
+                            <priority>HIGH</priority>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <name>ICMP Ping PE</name>
+                    <type>SIMPLE</type>
+                    <key>icmpping[{$PE_IP}]</key>
+                    <applications>
+                        <application>
+                            <name>Availability</name>
+                        </application>
+                    </applications>
+                    <triggers>
+                        <trigger>
+                            <expression>{max(#3)}=0</expression>
+                            <name>Unavailable PE Ping</name>
+                            <priority>HIGH</priority>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
                     <name>Hostname</name>
                     <type>SNMP_AGENT</type>
                     <snmp_oid>1.3.6.1.2.1.1.5.0</snmp_oid>
@@ -327,6 +329,13 @@
                             <name>Inventory</name>
                         </application>
                     </applications>
+                    <triggers>
+                        <trigger>
+                            <expression>{diff()}=1</expression>
+                            <name>Firmware has been updated</name>
+                            <priority>INFO</priority>
+                        </trigger>
+                    </triggers>
                 </item>
                 <item>
                     <name>Hardware Model</name>
@@ -475,141 +484,6 @@
                             <applications>
                                 <application>
                                     <name>High Availability</name>
-                                </application>
-                            </applications>
-                        </item_prototype>
-                    </item_prototypes>
-                </discovery_rule>
-                <discovery_rule>
-                    <name>fgHwSensor_FAN</name>
-                    <type>SNMP_AGENT</type>
-                    <snmp_oid>discovery[{#SNMPVALUE},.1.3.6.1.4.1.12356.101.4.3.2.1.2]</snmp_oid>
-                    <key>fgHwSensorEntName_FAN</key>
-                    <delay>300</delay>
-                    <filter>
-                        <conditions>
-                            <condition>
-                                <macro>{#SNMPVALUE}</macro>
-                                <value>^(Mid-|Back-|AMC\s|)Fan\s[0-9]|^(CPU|IOM)\sFan|^PS[0-9]\sFan\s[0-9]</value>
-                                <formulaid>A</formulaid>
-                            </condition>
-                        </conditions>
-                    </filter>
-                    <item_prototypes>
-                        <item_prototype>
-                            <name>Fan alarm status on {#SNMPVALUE}</name>
-                            <type>SNMP_AGENT</type>
-                            <snmp_oid>.1.3.6.1.4.1.12356.101.4.3.2.1.4.{#SNMPINDEX}</snmp_oid>
-                            <key>fgHwSensorEntAlarmStatus_FAN.[&quot;#{#SNMPINDEX}&quot;]</key>
-                            <delay>5m</delay>
-                            <applications>
-                                <application>
-                                    <name>Hardware</name>
-                                </application>
-                            </applications>
-                            <trigger_prototypes>
-                                <trigger_prototype>
-                                    <expression>{last()}=1</expression>
-                                    <name>FAN {#SNMPVALUE} on {HOST.NAME} is on alarm status</name>
-                                    <priority>HIGH</priority>
-                                </trigger_prototype>
-                            </trigger_prototypes>
-                        </item_prototype>
-                        <item_prototype>
-                            <name>Fan speed on {#SNMPVALUE}</name>
-                            <type>SNMP_AGENT</type>
-                            <snmp_oid>.1.3.6.1.4.1.12356.101.4.3.2.1.3.{#SNMPINDEX}</snmp_oid>
-                            <key>fgHwSensorEntValue_FAN.[&quot;{#SNMPINDEX}&quot;]</key>
-                            <delay>5m</delay>
-                            <applications>
-                                <application>
-                                    <name>Hardware</name>
-                                </application>
-                            </applications>
-                        </item_prototype>
-                    </item_prototypes>
-                </discovery_rule>
-                <discovery_rule>
-                    <name>fgHwSensor_PSStatus</name>
-                    <type>SNMP_AGENT</type>
-                    <snmp_oid>discovery[{#SNMPVALUE},.1.3.6.1.4.1.12356.101.4.3.2.1.2]</snmp_oid>
-                    <key>fgHwSensorEntName_PSStatus</key>
-                    <delay>300</delay>
-                    <filter>
-                        <conditions>
-                            <condition>
-                                <macro>{#SNMPVALUE}</macro>
-                                <value>^PS[0-9]\sStatus</value>
-                                <formulaid>A</formulaid>
-                            </condition>
-                        </conditions>
-                    </filter>
-                    <item_prototypes>
-                        <item_prototype>
-                            <name>PowerSupply alarm status on {#SNMPVALUE}</name>
-                            <type>SNMP_AGENT</type>
-                            <snmp_oid>.1.3.6.1.4.1.12356.101.4.3.2.1.4.{#SNMPINDEX}</snmp_oid>
-                            <key>fgHwSensorEntAlarmStatus_PSStatus.[&quot;#{#SNMPINDEX}&quot;]</key>
-                            <delay>3m</delay>
-                            <applications>
-                                <application>
-                                    <name>Hardware</name>
-                                </application>
-                            </applications>
-                            <trigger_prototypes>
-                                <trigger_prototype>
-                                    <expression>{last()}=1</expression>
-                                    <name>PS {#SNMPVALUE} on {HOST.NAME} is on alarm status</name>
-                                    <priority>AVERAGE</priority>
-                                </trigger_prototype>
-                            </trigger_prototypes>
-                        </item_prototype>
-                    </item_prototypes>
-                </discovery_rule>
-                <discovery_rule>
-                    <name>fgHwSensor_Temp</name>
-                    <type>SNMP_AGENT</type>
-                    <snmp_oid>discovery[{#SNMPVALUE},.1.3.6.1.4.1.12356.101.4.3.2.1.2]</snmp_oid>
-                    <key>fgHwSensorEntName_Temp</key>
-                    <delay>300</delay>
-                    <filter>
-                        <conditions>
-                            <condition>
-                                <macro>{#SNMPVALUE}</macro>
-                                <value>^DTS\sCPU[0-9]?|^ADT74(90|62)\s.+|^(IOM\s|)LM75|^(PS[0-9]|CPU Amb\.|IOH Amb\.|Front\sPanel|Fan\sModules|CPU\sArea)\sTemp|^(M\/B|Midfan)\sTemp\s[0-9]|^Midfan\sOutflow\s[LR]</value>
-                                <formulaid>A</formulaid>
-                            </condition>
-                        </conditions>
-                    </filter>
-                    <item_prototypes>
-                        <item_prototype>
-                            <name>Temperature alarm status on {#SNMPVALUE}</name>
-                            <type>SNMP_AGENT</type>
-                            <snmp_oid>.1.3.6.1.4.1.12356.101.4.3.2.1.4.{#SNMPINDEX}</snmp_oid>
-                            <key>fgHwSensorEntAlarmStatus_Temp.[&quot;#{#SNMPINDEX}&quot;]</key>
-                            <delay>3m</delay>
-                            <applications>
-                                <application>
-                                    <name>Hardware</name>
-                                </application>
-                            </applications>
-                            <trigger_prototypes>
-                                <trigger_prototype>
-                                    <expression>{last()}=1</expression>
-                                    <name>Temp {#SNMPVALUE} on {HOST.NAME} is on alarm status</name>
-                                    <priority>AVERAGE</priority>
-                                </trigger_prototype>
-                            </trigger_prototypes>
-                        </item_prototype>
-                        <item_prototype>
-                            <name>Temperature on {#SNMPVALUE}</name>
-                            <type>SNMP_AGENT</type>
-                            <snmp_oid>.1.3.6.1.4.1.12356.101.4.3.2.1.3.{#SNMPINDEX}</snmp_oid>
-                            <key>fgHwSensorEntValue_Temp.[&quot;{#SNMPINDEX}&quot;]</key>
-                            <delay>3m</delay>
-                            <applications>
-                                <application>
-                                    <name>Hardware</name>
                                 </application>
                             </applications>
                         </item_prototype>
@@ -781,7 +655,7 @@
                                 <graph_item>
                                     <color>199C0D</color>
                                     <item>
-                                        <host>Template SNMPv3 Fortigate</host>
+                                        <host>TemplateSNMPv3Fortigate</host>
                                         <key>ifInOctets[{#SNMPVALUE}]</key>
                                     </item>
                                 </graph_item>
@@ -789,7 +663,7 @@
                                     <sortorder>1</sortorder>
                                     <color>F63100</color>
                                     <item>
-                                        <host>Template SNMPv3 Fortigate</host>
+                                        <host>TemplateSNMPv3Fortigate</host>
                                         <key>ifOutOctets[{#SNMPVALUE}]</key>
                                     </item>
                                 </graph_item>
@@ -800,68 +674,4 @@
             </discovery_rules>
         </template>
     </templates>
-    <graphs>
-        <graph>
-            <name>CPU %</name>
-            <graph_items>
-                <graph_item>
-                    <color>199C0D</color>
-                    <item>
-                        <host>Template SNMPv3 Fortigate</host>
-                        <key>fortinetCurrentCPUUtil</key>
-                    </item>
-                </graph_item>
-            </graph_items>
-        </graph>
-        <graph>
-            <name>Current Connections</name>
-            <graph_items>
-                <graph_item>
-                    <color>FFBF00</color>
-                    <item>
-                        <host>Template SNMPv3 Fortigate</host>
-                        <key>fortinetCurrentConnections</key>
-                    </item>
-                </graph_item>
-            </graph_items>
-        </graph>
-        <graph>
-            <name>Disk use</name>
-            <width>400</width>
-            <height>400</height>
-            <yaxismax>0</yaxismax>
-            <show_work_period>NO</show_work_period>
-            <show_triggers>NO</show_triggers>
-            <type>PIE</type>
-            <graph_items>
-                <graph_item>
-                    <color>FF4000</color>
-                    <item>
-                        <host>Template SNMPv3 Fortigate</host>
-                        <key>fortinetUsedStorage-percent</key>
-                    </item>
-                </graph_item>
-                <graph_item>
-                    <sortorder>1</sortorder>
-                    <color>80FF00</color>
-                    <item>
-                        <host>Template SNMPv3 Fortigate</host>
-                        <key>fortinetTotalStorage</key>
-                    </item>
-                </graph_item>
-            </graph_items>
-        </graph>
-        <graph>
-            <name>RAM %</name>
-            <graph_items>
-                <graph_item>
-                    <color>FF0000</color>
-                    <item>
-                        <host>Template SNMPv3 Fortigate</host>
-                        <key>fortinetCurrentRAMUtil</key>
-                    </item>
-                </graph_item>
-            </graph_items>
-        </graph>
-    </graphs>
 </zabbix_export>
